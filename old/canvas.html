@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        canvas {
+            border: 1px solid #000;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="leftChannelAnalyzer" width="800" height="200"></canvas>
+    <canvas id="rightChannelAnalyzer" width="800" height="200"></canvas>
+    <button onclick="startAudioCapture()">Iniciar Captura</button>
+
+    <script>
+    async function startAudioCapture() {
+        try {
+            // Solicitar captura de tela com áudio
+            const stream = await navigator.mediaDevices.getDisplayMedia({ 
+                video: true,
+                audio: true 
+            });
+
+            const audioContext = new AudioContext();
+            const source = audioContext.createMediaStreamSource(stream);
+            
+            // Criar dois analisadores separados
+            const leftAnalyser = audioContext.createAnalyser();
+            const rightAnalyser = audioContext.createAnalyser();
+            
+            // Configurar splitter de canal
+            const splitter = audioContext.createChannelSplitter(2);
+            
+            // Conectar fonte ao splitter
+            source.connect(splitter);
+            
+            // Conectar canais aos analisadores
+            splitter.connect(leftAnalyser, 0);   // Canal esquerdo
+            splitter.connect(rightAnalyser, 1);  // Canal direito
+            
+            // Configurações comuns
+            leftAnalyser.fftSize = 256;
+            rightAnalyser.fftSize = 256;
+            
+            const bufferLength = leftAnalyser.frequencyBinCount;
+            const leftDataArray = new Uint8Array(bufferLength);
+            const rightDataArray = new Uint8Array(bufferLength);
+
+            function visualize() {
+                const leftCanvas = document.getElementById('leftChannelAnalyzer');
+                const rightCanvas = document.getElementById('rightChannelAnalyzer');
+                const leftCtx = leftCanvas.getContext('2d');
+                const rightCtx = rightCanvas.getContext('2d');
+                
+                // Limpar canvases
+                leftCtx.fillStyle = 'rgb(0, 0, 0)';
+                leftCtx.fillRect(0, 0, leftCanvas.width, leftCanvas.height);
+                
+                rightCtx.fillStyle = 'rgb(0, 0, 0)';
+                rightCtx.fillRect(0, 0, rightCanvas.width, rightCanvas.height);
+                
+                // Obter dados de frequência
+                leftAnalyser.getByteFrequencyData(leftDataArray);
+                rightAnalyser.getByteFrequencyData(rightDataArray);
+                
+                const barWidth = (leftCanvas.width / bufferLength) * 2.5;
+                let barHeight;
+                let x = 0;
+
+                // Desenhar canal esquerdo
+                for(let i = 0; i < bufferLength; i++) {
+                    barHeight = leftDataArray[i];
+                    leftCtx.fillStyle = `hsl(${(- barHeight) + 150}, 100%, 50%)`;
+                    leftCtx.fillRect(x, leftCanvas.height - barHeight, barWidth, barHeight);
+                    x += barWidth + 1;
+                }
+
+                // Resetar x para o canal direito
+                x = 0;
+
+                // Desenhar canal direito
+                for(let i = 0; i < bufferLength; i++) {
+                    barHeight = rightDataArray[i];
+                    rightCtx.fillStyle = `rgb(${barHeight + 50},70, 0)`;
+                    rightCtx.fillRect(x, rightCanvas.height - barHeight, barWidth, barHeight);
+                    x += barWidth + 1;
+                }
+
+                requestAnimationFrame(visualize);
+            }
+
+            visualize();
+        } catch (err) {
+            console.error("Erro:", err);
+        }
+    }
+    </script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #1a1a2e;
+    font-family: Arial, sans-serif;
+    color: white;
+}
+
+#audio-spectrum {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 300px;
+    width: 50%;
+    justify-content: space-around;
+}
+
+.spectrum-barLabel {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    row-gap: 5px;
+}
+
+.spectrum-bar {
+    width: 50px;
+    text-align: center;
+    color: white;
+    font-size: 12px;
+    line-height: 1.5;
+    transition: height 0.05s ease, background-color 0.2s ease;
+}
+
+#status {
+    display: flex;
+    flex-direction: column;
+    margin-top: 20px;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.rodape__texto {
+    font-family: Verdana, sans-serif;
+    margin: 1rem 0;
+}
